@@ -1,0 +1,13 @@
+upstream fastcgi_backend {
+        server  unix:/var/run/php/php7.0-fpm.sock;
+}
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+	server_name magento_servername;
+        set $MAGE_ROOT /var/www/html/magento2;
+        set $MAGE_MODE developer;
+        include /var/www/html/magento2/nginx.conf.sample;
+}
