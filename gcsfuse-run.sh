@@ -19,6 +19,7 @@ yes | $MAGENTO_HOME/bin/magento setup:config:set \
 --db-user="$DB_USER" \
 --db-password="$DB_PASSWD" \
 --session-save="$SESSION_SAVE"
+$MAGENTO_HOME/bin/magento cache:clean
 chmod -R 777 /var/www/html/magento2 
 
 sed -i "s/magento_servername/$HOSTNAME/g" /etc/nginx/sites-available/default
@@ -27,8 +28,7 @@ sed -i "s/magento_servername/$HOSTNAME/g" /etc/nginx/sites-available/default
 
 if [ $? -eq 0 ] && [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ];
 then
-	/usr/bin/gcsfuse --uid $(id -u www-data) --gid $(id -g www-data) --dir-mode="777" --file-mode="777" -o allow_other -o nonempty $MEDIABUCKET $MAGENTO_HOME/pub/media
-	/etc/init.d/php7.0-fpm start && nginx -g 'daemon off;'
+	/usr/bin/gcsfuse --uid $(id -u www-data) --gid $(id -g www-data) --dir-mode="777" --file-mode="777" -o allow_other -o nonempty $MEDIABUCKET $MAGENTO_HOME/pub/media && 	/etc/init.d/php7.0-fpm start && nginx -g 'daemon off;'
 else 
 	echo "Error in nginx configurations";
 fi

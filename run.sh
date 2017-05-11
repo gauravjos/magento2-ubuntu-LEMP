@@ -16,6 +16,9 @@ yes | $MAGENTO_HOME/bin/magento setup:config:set \
 --db-user="$DB_USER" \
 --db-password="$DB_PASSWD" \
 --session-save="$SESSION_SAVE"
+
+$MAGENTO_HOME/bin/magento cache:clean
+
 chmod -R 777 /var/www/html/magento2 
 
 sed -i "s/magento_servername/$HOSTNAME/g" /etc/nginx/sites-available/default

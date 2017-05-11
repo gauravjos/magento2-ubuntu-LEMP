@@ -1,0 +1,5 @@
+FROM gauravsj/php7-nginx-magento2-gcsfuse:default
+WORKDIR /var/www/html/magento2
+COPY gcsfuse-run.sh /usr/local/bin/run
+RUN chmod +x /usr/local/bin/run
+CMD ["/usr/local/bin/run"]
