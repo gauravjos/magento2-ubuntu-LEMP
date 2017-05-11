@@ -1,0 +1,98 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: magento2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: magento2
+    spec:
+      containers:
+        - image: gauravsj/php7-nginx-magento2:prod
+          name: magento2
+          resources:
+              requests:
+                  memory: "512Mi"
+                  cpu: "500m"
+              limits:
+                memory: "1Gi"
+                cpu: "2"
+          env:
+            - name: DB_HOST
+              # Connect to the SQL proxy over the local network on a fixed port.
+              # Change the [PORT] to the port number used by your database
+              # (e.g. 3306).
+              value: 127.0.0.1:3306
+            # These secrets are required to start the pod.
+            # [START cloudsql_secrets]
+            - name: DB_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-db-credentials
+                  key: password
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-db-credentials
+                  key: username
+            - name: DB_NAME
+              value: magento	
+            - name: BK_FRONT
+              value: admin
+            - name: SESSION_SAVE
+              value: db
+            # [END cloudsql_secrets]
+          ports:
+            - containerPort: 80
+              name: magento
+        # Change [INSTANCE_CONNECTION_NAME] here to include your GCP
+        # project, the region of your Cloud SQL instance and the name
+        # of your Cloud SQL instance. The format is
+        # $PROJECT:$REGION:$INSTANCE
+        # Insert the port number used by your database.
+        # [START proxy_container]
+        - image: gcr.io/cloudsql-docker/gce-proxy:1.09
+          name: cloudsql-proxy
+          command: ["/cloud_sql_proxy", "--dir=/cloudsql",
+                    "-instances=jellyfish-agencysite:us-central1:magento2db=tcp:3306",
+                    "-credential_file=/secrets/cloudsql/credentials.json"]
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+            - name: ssl-certs
+              mountPath: /etc/ssl/certs
+            - name: cloudsql
+              mountPath: /cloudsql
+        # [END proxy_container]
+      # [START volumes]
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: cloudsql-instance-credentials
+        - name: ssl-certs
+          hostPath:
+            path: /etc/ssl/certs
+        - name: cloudsql
+          emptyDir:
+      # [END volumes]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magento2-svc
+  labels:
+    app: magento2-svc
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+  selector:
+    app: magento2
