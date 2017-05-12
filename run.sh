@@ -17,7 +17,7 @@ yes | $MAGENTO_HOME/bin/magento setup:config:set \
 --db-password="$DB_PASSWD" \
 --session-save="$SESSION_SAVE"
 
-$MAGENTO_HOME/bin/magento cache:clean
+#$MAGENTO_HOME/bin/magento cache:clean
 
 chmod -R 777 /var/www/html/magento2 
 

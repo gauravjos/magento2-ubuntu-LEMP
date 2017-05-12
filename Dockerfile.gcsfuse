@@ -1,4 +1,5 @@
 FROM ubuntu:16.04
+ARG MAGENTO_HOME="/var/www/html/magento2"
 ARG MAGENTO_VERSION="2.1.5"
 ARG MAGENTO_MODE="default"
 ARG MAGENTO_BASEURL="http://magento.dev/"
@@ -74,6 +75,7 @@ RUN crontab -u www-data /tmp/magento.cron && rm -f /tmp/magento.cron
 RUN cd /var/www/html/magento2 && chown -R www-data:www-data . && find . -type d -exec chmod 770 {} \; && find . -type f -exec chmod 660 {} \; && chmod u+x bin/magento
 RUN  sed -i "s/set \$MAGE_MODE.*/set \$MAGE_MODE $MAGENTO_MODE;/g" /etc/nginx/sites-available/default && cd /var/www/html/magento2 && if [ "$MAGENTO_MODE" != "default" ] ;then bin/magento deploy:mode:set $MAGENTO_MODE ;fi
 WORKDIR /var/www/html/magento2
+RUN "$MAGENTO_HOME"/bin/magento cache:clean
 COPY gcsfuse-run.sh /usr/local/bin/run
 RUN chmod +x /usr/local/bin/run
 CMD ["/usr/local/bin/run"]

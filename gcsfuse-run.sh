@@ -23,12 +23,20 @@ $MAGENTO_HOME/bin/magento cache:clean
 chmod -R 777 /var/www/html/magento2 
 
 sed -i "s/magento_servername/$HOSTNAME/g" /etc/nginx/sites-available/default
+[ -f "$GOOGLE_APPLICATION_CREDENTIALS" ] && /usr/bin/gcsfuse --uid $(id -u www-data) --gid $(id -g www-data) --dir-mode="777" --file-mode="777" -o allow_other -o nonempty $MEDIABUCKET $MAGENTO_HOME/pub/media
+if [ $? -eq 0 ] ;
+then 
+	echo "$MAGENTO_HOME/pub/media mounted successfully with $MEDIABUCKET"
+        $MAGENTO_HOME/bin/magento cache:clean
 
+else 
+   echo "$MAGENTO_HOME/pub/media not mounted !!"
+fi
 /usr/sbin/nginx -t
 
 if [ $? -eq 0 ] && [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ];
 then
-	/usr/bin/gcsfuse --uid $(id -u www-data) --gid $(id -g www-data) --dir-mode="777" --file-mode="777" -o allow_other -o nonempty $MEDIABUCKET $MAGENTO_HOME/pub/media && 	/etc/init.d/php7.0-fpm start && nginx -g 'daemon off;'
+	/etc/init.d/php7.0-fpm start && nginx -g 'daemon off;'
 else 
 	echo "Error in nginx configurations";
 fi
